@@ -675,16 +675,13 @@ function toggleTheme() {
 	saveTheme(newTheme)
 }
 
-// Переключение темы
 document.getElementById('themeToggle').addEventListener('click', () => {
 	const isDark = document.documentElement.classList.contains('dark')
 	saveTheme(!isDark ? 'dark' : 'light')
 })
 
-// Загрузка темы при старте
 loadTheme()
 
-// Функция для переключения панели фильтров
 function toggleFilters() {
 	const filtersPanel = document.getElementById('filtersPanel')
 	const isHidden = filtersPanel.classList.contains('hidden')

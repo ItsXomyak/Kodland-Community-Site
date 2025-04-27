@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Административная панель - Таблицы</title>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
+			rel="stylesheet"
+		/>
+		<style>
+			.sidebar {
+				min-height: 100vh;
+				background-color: #343a40;
+			}
+			.nav-link {
+				color: rgba(255, 255, 255, 0.75);
+			}
+			.nav-link:hover {
+				color: rgba(255, 255, 255, 1);
+			}
+			.nav-link.active {
+				color: white;
+			}
+			.error {
+				color: red;
+				font-size: 0.8em;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Login Modal -->
+		<div class="modal fade" id="loginModal" tabindex="-1">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Вход в админ-панель</h5>
+						<button
+							type="button"
+							class="btn-close"
+							data-bs-dismiss="modal"
+						></button>
+					</div>
+					<div class="modal-body">
+						<form id="loginForm">
+							<div class="mb-3">
+								<label for="username" class="form-label"
+									>Имя пользователя</label
+								>
+								<input
+									type="text"
+									class="form-control"
+									id="username"
+									required
+								/>
+							</div>
+							<div class="mb-3">
+								<label for="password" class="form-label">Пароль</label>
+								<input
+									type="password"
+									class="form-control"
+									id="password"
+									required
+								/>
+							</div>
+							<div id="loginError" class="error"></div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" onclick="login()">
+							Войти
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="container-fluid" id="mainContent" style="display: none">
+			<div class="row">
+				<!-- Sidebar -->
+				<div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+					<div class="position-sticky pt-3">
+						<ul class="nav flex-column">
+							<li class="nav-item">
+								<a class="nav-link active" href="#tables" data-bs-toggle="tab">
+									<i class="bi bi-table"></i> Таблицы
+								</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="/admin.html">
+									<i class="bi bi-person"></i> Пользователи
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<!-- Main content -->
+				<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+					<div
+						class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+					>
+						<h1 class="h2">Управление таблицами</h1>
+						<button
+							class="btn btn-primary"
+							data-bs-toggle="modal"
+							data-bs-target="#addTableModal"
+						>
+							<i class="bi bi-plus-lg"></i> Добавить таблицу
+						</button>
+					</div>
+
+					<!-- Tables List -->
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="tables">
+							<div class="table-responsive">
+								<table class="table table-striped table-hover">
+									<thead>
+										<tr>
+											<th>ID</th>
+											<th>Название</th>
+											<th>Описание</th>
+											<th>Данные</th>
+											<th>Публичная</th>
+											<th>Дата создания</th>
+											<th>Действия</th>
+										</tr>
+									</thead>
+									<tbody id="tablesListBody"></tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</main>
+			</div>
+		</div>
+
+		<!-- Add Table Modal -->
+		<div class="modal fade" id="addTableModal" tabindex="-1">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Добавить таблицу</h5>
+						<button
+							type="button"
+							class="btn-close"
+							data-bs-dismiss="modal"
+						></button>
+					</div>
+					<div class="modal-body">
+						<form id="addTableForm">
+							<!-- Название и описание -->
+							<div class="mb-3">
+								<label for="tableName" class="form-label">Название</label>
+								<input
+									type="text"
+									class="form-control"
+									id="tableName"
+									required
+								/>
+								<div id="tableNameError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="tableDescription" class="form-label"
+									>Описание</label
+								>
+								<textarea
+									class="form-control"
+									id="tableDescription"
+									required
+								></textarea>
+								<div id="tableDescriptionError" class="error"></div>
+							</div>
+
+							<!-- Столбцы -->
+							<div class="mb-3">
+								<label class="form-label">Столбцы</label>
+								<div class="input-group mb-2">
+									<input
+										type="text"
+										class="form-control"
+										id="newColumnName"
+										placeholder="Название столбца"
+									/>
+									<button
+										type="button"
+										class="btn btn-primary"
+										onclick="addColumn()"
+									>
+										Добавить
+									</button>
+								</div>
+								<div id="columnsList" class="list-group"></div>
+								<div id="columnsError" class="error"></div>
+							</div>
+
+							<!-- Данные -->
+							<div class="mb-3">
+								<label class="form-label">Данные</label>
+								<div class="table-responsive">
+									<table class="table table-bordered">
+										<thead id="dataTableHead"></thead>
+										<tbody id="dataTableBody"></tbody>
+									</table>
+								</div>
+								<button
+									type="button"
+									class="btn btn-primary"
+									onclick="addRow()"
+								>
+									Добавить строку
+								</button>
+								<div id="dataError" class="error"></div>
+							</div>
+
+							<!-- Публичность -->
+							<div class="mb-3">
+								<label class="form-check-label">
+									<input
+										type="checkbox"
+										class="form-check-input"
+										id="tableIsPublic"
+										checked
+									/>
+									Публичная
+								</label>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button
+							type="button"
+							class="btn btn-secondary"
+							data-bs-dismiss="modal"
+						>
+							Отмена
+						</button>
+						<button type="button" class="btn btn-primary" onclick="addTable()">
+							Добавить
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Edit Table Modal -->
+		<div class="modal fade" id="editTableModal" tabindex="-1">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Редактировать таблицу</h5>
+						<button
+							type="button"
+							class="btn-close"
+							data-bs-dismiss="modal"
+						></button>
+					</div>
+					<div class="modal-body">
+						<form id="editTableForm">
+							<input type="hidden" id="editTableId" />
+
+							<div class="mb-3">
+								<label for="editTableName" class="form-label">Название</label>
+								<input
+									type="text"
+									class="form-control"
+									id="editTableName"
+									required
+								/>
+							</div>
+
+							<div class="mb-3">
+								<label for="editTableDescription" class="form-label"
+									>Описание</label
+								>
+								<textarea
+									class="form-control"
+									id="editTableDescription"
+									required
+								></textarea>
+							</div>
+
+							<div class="mb-3">
+								<div
+									class="d-flex justify-content-between align-items-center mb-2"
+								>
+									<label class="form-label mb-0">Данные таблицы</label>
+									<div>
+										<button
+											type="button"
+											class="btn btn-success btn-sm"
+											onclick="addNewColumn()"
+										>
+											<i class="bi bi-plus-lg"></i> Добавить столбец
+										</button>
+										<button
+											type="button"
+											class="btn btn-success btn-sm ms-2"
+											onclick="addNewRow()"
+										>
+											<i class="bi bi-plus-lg"></i> Добавить строку
+										</button>
+									</div>
+								</div>
+								<div class="table-responsive">
+									<table class="table table-bordered table-hover">
+										<thead class="table-light">
+											<tr id="editTableHeaders"></tr>
+										</thead>
+										<tbody id="editTableData"></tbody>
+									</table>
+								</div>
+							</div>
+
+							<div class="mb-3">
+								<label class="form-check-label">
+									<input
+										type="checkbox"
+										class="form-check-input"
+										id="editTableIsPublic"
+									/>
+									Публичная
+								</label>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button
+							type="button"
+							class="btn btn-secondary"
+							data-bs-dismiss="modal"
+						>
+							Отмена
+						</button>
+						<button
+							type="button"
+							class="btn btn-primary"
+							onclick="updateTable()"
+						>
+							Сохранить
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+		<script>
+			const loginModal = new bootstrap.Modal(
+				document.getElementById('loginModal')
+			)
+			let token = localStorage.getItem('token')
+			let columns = []
+			let editColumns = []
+
+			if (!token) {
+				loginModal.show()
+			} else {
+				document.getElementById('mainContent').style.display = 'block'
+				loadTables()
+			}
+
+			async function login() {
+				const username = document.getElementById('username').value
+				const password = document.getElementById('password').value
+
+				const response = await fetch('/api/login', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ username, password }),
+				})
+
+				if (response.ok) {
+					const data = await response.json()
+					token = data.access_token
+					localStorage.setItem('token', token)
+					loginModal.hide()
+					document.getElementById('mainContent').style.display = 'block'
+					loadTables()
+				} else {
+					document.getElementById('loginError').textContent =
+						'Неверный логин или пароль'
+				}
+			}
+
+			async function loadTables() {
+				console.log('Sending request with token:', token)
+				const response = await fetch('/api/admin/tables', {
+					headers: { Authorization: `Bearer ${token}` },
+				})
+
+				if (response.status === 401) {
+					console.error('Unauthorized: Token may be invalid or expired')
+					localStorage.removeItem('token')
+					loginModal.show()
+					return
+				}
+
+				if (!response.ok) {
+					console.error(
+						'Failed to load tables:',
+						response.status,
+						response.statusText
+					)
+					return
+				}
+
+				const tables = await response.json()
+				const tbody = document.getElementById('tablesListBody')
+				tbody.innerHTML = ''
+
+				tables.forEach(table => {
+					let dataPreview = 'Нет данных'
+					try {
+						const parsedData = JSON.parse(table.data)
+						if (parsedData.rows && parsedData.rows.length > 0) {
+							dataPreview = `${parsedData.rows.length} строк, ${parsedData.columns.length} столбцов`
+						}
+					} catch (e) {
+						dataPreview = table.data
+					}
+
+					const row = document.createElement('tr')
+					row.innerHTML = `
+                    <td>${table.id}</td>
+                    <td>${table.name}</td>
+                    <td>${table.description}</td>
+                    <td>${dataPreview}</td>
+                    <td>${table.is_public ? 'Да' : 'Нет'}</td>
+                    <td>${new Date(table.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm me-1" onclick="editTable(${
+													table.id
+												})">
+                            <i class="bi bi-pencil"></i> Редактировать
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteTable(${
+													table.id
+												})">
+                            <i class="bi bi-trash"></i> Удалить
+                        </button>
+                    </td>
+                `
+					tbody.appendChild(row)
+				})
+			}
+
+			function addColumn(mode = 'add') {
+				const columnName = document
+					.getElementById(
+						mode === 'add' ? 'newColumnName' : 'editNewColumnName'
+					)
+					.value.trim()
+				if (!columnName) {
+					document.getElementById(
+						mode === 'add' ? 'columnsError' : 'editColumnsError'
+					).textContent = 'Название столбца не может быть пустым'
+					return
+				}
+
+				if (mode === 'add') {
+					columns.push(columnName)
+					document.getElementById('newColumnName').value = ''
+					document.getElementById('columnsError').textContent = ''
+					renderColumns()
+					renderDataTable()
+				} else {
+					editColumns.push(columnName)
+					document.getElementById('editNewColumnName').value = ''
+					document.getElementById('editColumnsError').textContent = ''
+					renderColumns('edit')
+					renderDataTable('edit')
+				}
+			}
+
+			function removeColumn(index, mode = 'add') {
+				if (mode === 'add') {
+					columns.splice(index, 1)
+					renderColumns()
+					renderDataTable()
+				} else {
+					editColumns.splice(index, 1)
+					renderColumns('edit')
+					renderDataTable('edit')
+				}
+			}
+
+			function renderColumns(mode = 'add') {
+				const columnsList = document.getElementById(
+					mode === 'add' ? 'columnsList' : 'editColumnsList'
+				)
+				const currentColumns = mode === 'add' ? columns : editColumns
+				columnsList.innerHTML = ''
+				currentColumns.forEach((column, index) => {
+					const item = document.createElement('div')
+					item.className =
+						'list-group-item d-flex justify-content-between align-items-center'
+					item.innerHTML = `
+                    ${column}
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeColumn(${index}, '${mode}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                `
+					columnsList.appendChild(item)
+				})
+			}
+
+			function renderDataTable(mode = 'add') {
+				const thead = document.getElementById(
+					mode === 'add' ? 'dataTableHead' : 'editDataTableHead'
+				)
+				const tbody = document.getElementById(
+					mode === 'add' ? 'dataTableBody' : 'editDataTableBody'
+				)
+				const currentColumns = mode === 'add' ? columns : editColumns
+
+				thead.innerHTML = ''
+				if (currentColumns.length === 0) {
+					tbody.innerHTML = ''
+					return
+				}
+
+				// Создаем заголовки
+				const headerRow = document.createElement('tr')
+				currentColumns.forEach(column => {
+					const th = document.createElement('th')
+					th.textContent = column
+					headerRow.appendChild(th)
+				})
+				const actionTh = document.createElement('th')
+				actionTh.textContent = 'Действия'
+				headerRow.appendChild(actionTh)
+				thead.appendChild(headerRow)
+
+				// Сохраняем существующие данные
+				const existingRows = Array.from(tbody.children).map(row => {
+					return Array.from(row.querySelectorAll('input')).map(
+						input => input.value
+					)
+				})
+
+				// Обновляем тело таблицы с сохраненными данными
+				tbody.innerHTML = ''
+				existingRows.forEach(rowData => {
+					const tr = document.createElement('tr')
+					currentColumns.forEach((_, index) => {
+						const td = document.createElement('td')
+						const input = document.createElement('input')
+						input.type = 'text'
+						input.className = 'form-control'
+						input.value = rowData[index] || ''
+						td.appendChild(input)
+						tr.appendChild(td)
+					})
+
+					const actionTd = document.createElement('td')
+					actionTd.innerHTML = `
+                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    `
+					tr.appendChild(actionTd)
+					tbody.appendChild(tr)
+				})
+			}
+
+			function addRow(values = [], mode = 'add') {
+				const currentColumns = mode === 'add' ? columns : editColumns
+				if (currentColumns.length === 0) {
+					document.getElementById(
+						mode === 'add' ? 'dataError' : 'editDataError'
+					).textContent = 'Сначала добавьте столбцы'
+					return
+				}
+
+				const tbody = document.getElementById(
+					mode === 'add' ? 'dataTableBody' : 'editDataTableBody'
+				)
+				const row = document.createElement('tr')
+				currentColumns.forEach((_, index) => {
+					const td = document.createElement('td')
+					const input = document.createElement('input')
+					input.type = 'text'
+					input.className = 'form-control'
+					input.value = values[index] || ''
+					td.appendChild(input)
+					row.appendChild(td)
+				})
+
+				const actionTd = document.createElement('td')
+				actionTd.innerHTML = `
+                <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove()">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `
+				row.appendChild(actionTd)
+				tbody.appendChild(row)
+				document.getElementById(
+					mode === 'add' ? 'dataError' : 'editDataError'
+				).textContent = ''
+			}
+
+			async function addTable() {
+				const name = document.getElementById('tableName').value.trim()
+				const description = document
+					.getElementById('tableDescription')
+					.value.trim()
+				const isPublic = document.getElementById('tableIsPublic').checked
+
+				if (!name || !description) {
+					alert('Название и описание обязательны')
+					return
+				}
+
+				if (columns.length === 0) {
+					document.getElementById('columnsError').textContent =
+						'Добавьте хотя бы один столбец'
+					return
+				}
+
+				const tbody = document.getElementById('dataTableBody')
+				const rows = Array.from(tbody.children).map(row => {
+					return Array.from(row.children)
+						.slice(0, -1)
+						.map(cell => cell.querySelector('input').value.trim())
+				})
+
+				const dataObj = {
+					columns: columns,
+					rows: rows,
+				}
+				const data = JSON.stringify(dataObj)
+
+				const response = await fetch('/api/admin/tables', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`,
+					},
+					body: JSON.stringify({
+						name,
+						description,
+						data,
+						is_public: isPublic,
+					}),
+				})
+
+				if (response.ok) {
+					const modal = bootstrap.Modal.getInstance(
+						document.getElementById('addTableModal')
+					)
+					modal.hide()
+					columns = []
+					document.getElementById('tableName').value = ''
+					document.getElementById('tableDescription').value = ''
+					document.getElementById('dataTableHead').innerHTML = ''
+					document.getElementById('dataTableBody').innerHTML = ''
+					loadTables()
+				} else {
+					alert('Ошибка при создании таблицы')
+				}
+			}
+
+			function editTable(id) {
+				console.log('=== Начало editTable ===')
+				console.log('Редактирование таблицы с ID:', id)
+
+				fetch(`/api/admin/tables/${id}`, {
+					headers: { Authorization: `Bearer ${token}` },
+				})
+					.then(response => {
+						if (!response.ok) {
+							throw new Error('Ошибка при загрузке таблицы')
+						}
+						return response.json()
+					})
+					.then(table => {
+						console.log('Получены данные таблицы:', table)
+						console.log('Сырые данные:', table.data)
+
+						document.getElementById('editTableId').value = table.id
+						document.getElementById('editTableName').value = table.name
+						document.getElementById('editTableDescription').value =
+							table.description
+						document.getElementById('editTableIsPublic').checked =
+							table.is_public
+
+						let parsedData
+						try {
+							parsedData = JSON.parse(table.data)
+							console.log('Распарсенные данные:', parsedData)
+						} catch (e) {
+							console.error('Ошибка парсинга данных:', e)
+							alert('Ошибка при загрузке данных таблицы')
+							return
+						}
+
+						// Сохраняем столбцы глобально
+						editColumns = parsedData.columns
+						console.log('Установлены столбцы:', editColumns)
+
+						// Очищаем таблицу
+						const headerRow = document.getElementById('editTableHeaders')
+						const tableBody = document.getElementById('editTableData')
+						headerRow.innerHTML = ''
+						tableBody.innerHTML = ''
+
+						console.log('Создаем заголовки для столбцов:', parsedData.columns)
+						// Создаем заголовки
+						parsedData.columns.forEach((column, index) => {
+							const th = document.createElement('th')
+							th.className = 'position-relative'
+							th.innerHTML = `
+							<div class="input-group input-group-sm">
+								<input type="text" class="form-control" value="${column}" 
+									   onchange="updateColumnName(${index}, this.value)">
+								<button class="btn btn-outline-danger" type="button" onclick="deleteColumn(${index})">
+									<i class="bi bi-trash"></i>
+								</button>
+							</div>
+						`
+							headerRow.appendChild(th)
+						})
+
+						// Добавляем ячейку действий в заголовок
+						const actionTh = document.createElement('th')
+						actionTh.className = 'text-center'
+						actionTh.style.width = '50px'
+						actionTh.textContent = 'Действия'
+						headerRow.appendChild(actionTh)
+
+						console.log('Заполняем данные строк:', parsedData.rows)
+						// Заполняем данные
+						parsedData.rows.forEach((row, rowIndex) => {
+							const tr = document.createElement('tr')
+
+							// Добавляем ячейки с данными
+							row.forEach((cell, cellIndex) => {
+								const td = document.createElement('td')
+								td.innerHTML = `
+								<input type="text" class="form-control form-control-sm" value="${cell || ''}">
+							`
+								tr.appendChild(td)
+							})
+
+							// Добавляем кнопку удаления строки
+							const actionTd = document.createElement('td')
+							actionTd.className = 'text-center'
+							actionTd.innerHTML = `
+							<button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest('tr').remove()">
+								<i class="bi bi-trash"></i>
+							</button>
+						`
+							tr.appendChild(actionTd)
+							tableBody.appendChild(tr)
+						})
+
+						console.log('Финальное состояние заголовков:', headerRow.innerHTML)
+						console.log(
+							'Финальное состояние тела таблицы:',
+							tableBody.innerHTML
+						)
+
+						// Показываем модальное окно
+						const editModal = new bootstrap.Modal(
+							document.getElementById('editTableModal')
+						)
+						editModal.show()
+					})
+					.catch(error => {
+						console.error('Ошибка:', error)
+						alert('Ошибка при загрузке таблицы')
+					})
+
+				console.log('=== Конец editTable ===')
+			}
+
+			function updateColumnName(index, value) {
+				console.log(`Обновление названия столбца ${index} на "${value}"`)
+				console.log('Столбцы до обновления:', editColumns)
+				editColumns[index] = value
+				console.log('Столбцы после обновления:', editColumns)
+			}
+
+			function deleteColumn(index) {
+				// Проверяем, что это не последний столбец
+				if (editColumns.length <= 1) {
+					alert('Нельзя удалить последний столбец')
+					return
+				}
+
+				editColumns.splice(index, 1)
+
+				// Удаляем заголовок
+				const headers = document.querySelectorAll('#editTableHeaders th')
+				if (headers[index]) {
+					headers[index].remove()
+				}
+
+				// Удаляем соответствующую ячейку из каждой строки
+				const rows = document.querySelectorAll('#editTableData tr')
+				rows.forEach(row => {
+					if (row.children[index]) {
+						row.children[index].remove()
+					}
+				})
+
+				// Обновляем индексы для оставшихся столбцов
+				document.querySelectorAll('#editTableHeaders th').forEach((th, i) => {
+					if (th.textContent !== 'Действия') {
+						const input = th.querySelector('input')
+						const button = th.querySelector('button')
+						if (input) {
+							input.setAttribute(
+								'onchange',
+								`updateColumnName(${i}, this.value)`
+							)
+						}
+						if (button) {
+							button.setAttribute('onclick', `deleteColumn(${i})`)
+						}
+					}
+				})
+			}
+
+			function addNewColumn() {
+				console.log('=== Начало addNewColumn ===')
+				console.log('Текущие столбцы:', editColumns)
+
+				const headerRow = document.getElementById('editTableHeaders')
+				console.log('Текущие заголовки перед добавлением:', headerRow.innerHTML)
+
+				const newIndex = editColumns.length
+				console.log('Индекс нового столбца:', newIndex)
+
+				// Добавляем новый столбец
+				editColumns.push('')
+				console.log('Столбцы после добавления нового:', editColumns)
+
+				// Пересоздаем заголовки
+				headerRow.innerHTML = ''
+
+				// Добавляем все столбцы (включая новый)
+				editColumns.forEach((column, index) => {
+					const th = document.createElement('th')
+					th.className = 'position-relative'
+					th.innerHTML = `
+						<div class="input-group input-group-sm">
+							<input type="text" class="form-control" 
+								   value="${column}" 
+								   placeholder="Название столбца" 
+								   onchange="updateColumnName(${index}, this.value)">
+							<button class="btn btn-outline-danger" type="button" onclick="deleteColumn(${index})">
+								<i class="bi bi-trash"></i>
+							</button>
+						</div>
+					`
+					headerRow.appendChild(th)
+				})
+
+				// Добавляем ячейку действий в заголовок
+				const actionTh = document.createElement('th')
+				actionTh.className = 'text-center'
+				actionTh.style.width = '50px'
+				actionTh.textContent = 'Действия'
+				headerRow.appendChild(actionTh)
+
+				// Обновляем строки
+				const tbody = document.getElementById('editTableData')
+				const rows = tbody.getElementsByTagName('tr')
+
+				Array.from(rows).forEach(row => {
+					// Сохраняем текущие значения
+					const currentValues = Array.from(
+						row.getElementsByTagName('input')
+					).map(input => input.value)
+
+					// Удаляем ячейку действий
+					const lastCell = row.lastElementChild
+					if (lastCell && lastCell.querySelector('.btn-outline-danger')) {
+						lastCell.remove()
+					}
+
+					// Добавляем новую пустую ячейку
+					const td = document.createElement('td')
+					td.innerHTML = `<input type="text" class="form-control form-control-sm" value="">`
+					row.appendChild(td)
+
+					// Добавляем ячейку действий обратно
+					const actionTd = document.createElement('td')
+					actionTd.className = 'text-center'
+					actionTd.innerHTML = `
+						<button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest('tr').remove()">
+							<i class="bi bi-trash"></i>
+						</button>
+					`
+					row.appendChild(actionTd)
+				})
+
+				console.log('=== Конец addNewColumn ===')
+			}
+
+			function addNewRow() {
+				const tbody = document.getElementById('editTableData')
+				const tr = document.createElement('tr')
+
+				// Добавляем ячейки для каждого столбца
+				editColumns.forEach(() => {
+					const td = document.createElement('td')
+					td.innerHTML = `<input type="text" class="form-control form-control-sm" value="">`
+					tr.appendChild(td)
+				})
+
+				// Добавляем кнопку удаления
+				const actionTd = document.createElement('td')
+				actionTd.className = 'text-center'
+				actionTd.innerHTML = `
+					<button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest('tr').remove()">
+						<i class="bi bi-trash"></i>
+					</button>
+				`
+				tr.appendChild(actionTd)
+				tbody.appendChild(tr)
+			}
+
+			async function updateTable() {
+				const tableId = document.getElementById('editTableId').value
+				const name = document.getElementById('editTableName').value.trim()
+				const description = document
+					.getElementById('editTableDescription')
+					.value.trim()
+				const isPublic = document.getElementById('editTableIsPublic').checked
+
+				if (!name || !description) {
+					alert('Название и описание обязательны')
+					return
+				}
+
+				// Собираем данные из таблицы
+				const rows = Array.from(
+					document.getElementById('editTableData').children
+				).map(row => {
+					return Array.from(row.querySelectorAll('input')).map(input =>
+						input.value.trim()
+					)
+				})
+
+				const dataObj = {
+					columns: editColumns,
+					rows: rows,
+				}
+
+				try {
+					const response = await fetch(`/api/admin/tables/${tableId}`, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${token}`,
+						},
+						body: JSON.stringify({
+							name,
+							description,
+							data: JSON.stringify(dataObj),
+							is_public: isPublic,
+						}),
+					})
+
+					if (!response.ok) {
+						throw new Error(`HTTP error! status: ${response.status}`)
+					}
+
+					const editModal = bootstrap.Modal.getInstance(
+						document.getElementById('editTableModal')
+					)
+					editModal.hide()
+					loadTables()
+					alert('Таблица успешно обновлена')
+				} catch (error) {
+					console.error('Error updating table:', error)
+					alert('Ошибка при обновлении таблицы')
+				}
+			}
+
+			async function deleteTable(id) {
+				if (!confirm('Вы уверены, что хотите удалить таблицу?')) return
+
+				const response = await fetch(`/api/admin/tables/${id}`, {
+					method: 'DELETE',
+					headers: { Authorization: `Bearer ${token}` },
+				})
+
+				if (response.ok) {
+					loadTables()
+				} else {
+					alert('Ошибка при удалении таблицы')
+				}
+			}
+
+			document
+				.getElementById('addTableModal')
+				.addEventListener('show.bs.modal', () => {
+					columns = []
+					renderColumns()
+					renderDataTable()
+				})
+
+			document
+				.getElementById('editTableModal')
+				.addEventListener('show.bs.modal', () => {
+					console.log(
+						'Модальное окно открывается, текущие столбцы:',
+						editColumns
+					)
+				})
+		</script>
+	</body>
+</html>

@@ -36,10 +36,18 @@
 				color: red;
 				font-size: 0.8em;
 			}
+			.stat-item {
+				display: inline-flex;
+				align-items: center;
+				margin-right: 10px;
+			}
+			.stat-icon {
+				margin-right: 5px;
+				color: #6c757d;
+			}
 		</style>
 	</head>
 	<body>
-		<!-- Login Modal -->
 		<div class="modal fade" id="loginModal" tabindex="-1">
 			<div class="modal-dialog">
 				<div class="modal-content">
@@ -87,7 +95,6 @@
 
 		<div class="container-fluid" id="mainContent" style="display: none">
 			<div class="row">
-				<!-- Sidebar -->
 				<div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
 					<div class="position-sticky pt-3">
 						<ul class="nav flex-column">
@@ -96,11 +103,15 @@
 									<i class="bi bi-people"></i> Пользователи
 								</a>
 							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="/admin-tables.html">
+									<i class="bi bi-table"></i> Таблицы
+								</a>
+							</li>
 						</ul>
 					</div>
 				</div>
 
-				<!-- Main content -->
 				<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
 					<div
 						class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
@@ -115,7 +126,6 @@
 						</button>
 					</div>
 
-					<!-- Users Table -->
 					<div class="tab-content">
 						<div class="tab-pane fade show active" id="users">
 							<div class="table-responsive">
@@ -156,7 +166,6 @@
 			</div>
 		</div>
 
-		<!-- Add User Modal -->
 		<div class="modal fade" id="addUserModal" tabindex="-1">
 			<div class="modal-dialog modal-lg">
 				<div class="modal-content">
@@ -265,11 +274,7 @@
 								<label for="joined_at" class="form-label"
 									>Дата присоединения</label
 								>
-								<input
-									type="datetime-local"
-									class="form-control"
-									id="joined_at"
-								/>
+								<input type="date" class="form-control" id="joined_at" />
 								<div id="joinedAtError" class="error"></div>
 							</div>
 						</form>
@@ -290,7 +295,6 @@
 			</div>
 		</div>
 
-		<!-- Edit User Modal -->
 		<div class="modal fade" id="editUserModal" tabindex="-1">
 			<div class="modal-dialog modal-lg">
 				<div class="modal-content">
@@ -398,11 +402,7 @@
 								<label for="editJoinedAt" class="form-label"
 									>Дата присоединения</label
 								>
-								<input
-									type="datetime-local"
-									class="form-control"
-									id="editJoinedAt"
-								/>
+								<input type="date" class="form-control" id="editJoinedAt" />
 								<div id="editJoinedAtError" class="error"></div>
 							</div>
 						</form>
@@ -435,7 +435,6 @@
 			let currentPage = 1
 			const limit = 12
 
-			// Показать форму логина при загрузке
 			document.addEventListener('DOMContentLoaded', () => {
 				new bootstrap.Modal(document.getElementById('loginModal'), {
 					backdrop: 'static',
@@ -464,17 +463,14 @@
 
 					const data = await response.json()
 
-					// Сохраняем токен
 					localStorage.setItem('token', data.access_token)
 
-					// Скрываем модальное окно и показываем основной контент
 					const loginModal = bootstrap.Modal.getInstance(
 						document.getElementById('loginModal')
 					)
 					loginModal.hide()
 					document.getElementById('mainContent').style.display = 'block'
 
-					// Загружаем данные
 					loadUsers()
 				} catch (error) {
 					errorElement.textContent = error.message
@@ -491,7 +487,6 @@
 
 					if (!response.ok) {
 						if (response.status === 401) {
-							// Токен истек или недействителен
 							localStorage.removeItem('token')
 							window.location.reload()
 							return
@@ -526,6 +521,10 @@
 						<td>${user.likes}</td>
 						<td>${new Date(user.joined_at).toLocaleDateString()}</td>
 						<td>
+							<div class="stat-item">
+								<i class="bi bi-person-badge-fill stat-icon"></i>
+								<span>1</span>
+							</div>
 							<button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">
 								<i class="bi bi-pencil"></i>
 							</button>
@@ -539,79 +538,37 @@
 			}
 
 			function validateForm(isEdit = false) {
-				const prefix = isEdit ? 'edit' : ''
-				const nickname =
-					document.getElementById(prefix + 'Nickname')?.value || ''
-				const avatarUrl =
-					document.getElementById(prefix + 'AvatarUrl')?.value || ''
-				const links = document.getElementById(prefix + 'Links')?.value || ''
-				const achievements =
-					document.getElementById(prefix + 'Achievements')?.value || ''
-				const roles = document.getElementById(prefix + 'Roles')?.value || ''
-				const medalsGold =
-					document.getElementById(prefix + 'MedalsGold')?.value || 0
-				const medalsSilver =
-					document.getElementById(prefix + 'MedalsSilver')?.value || 0
-				const medalsBronze =
-					document.getElementById(prefix + 'MedalsBronze')?.value || 0
-				const likes = document.getElementById(prefix + 'Likes')?.value || 0
-				const joinedAt =
-					document.getElementById(prefix + 'JoinedAt')?.value || ''
+				let nickname, avatarUrl, nicknameError, avatarUrlError
+
+				if (isEdit) {
+					nickname = document.getElementById('editNickname').value
+					avatarUrl = document.getElementById('editAvatarUrl').value
+					nicknameError = document.getElementById('editNicknameError')
+					avatarUrlError = document.getElementById('editAvatarUrlError')
+				} else {
+					nickname = document.getElementById('nickname').value
+					avatarUrl = document.getElementById('avatar_url').value
+					nicknameError = document.getElementById('nicknameError')
+					avatarUrlError = document.getElementById('avatarUrlError')
+				}
 
 				let isValid = true
-				const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/
 
-				// Очистка ошибок
-				document.querySelectorAll('.error').forEach(el => {
-					if (el) el.textContent = ''
-				})
+				if (nicknameError) nicknameError.textContent = ''
+				if (avatarUrlError) avatarUrlError.textContent = ''
 
-				// Валидация никнейма
-				if (nickname.length < 2) {
-					const errorEl = document.getElementById(prefix + 'NicknameError')
-					if (errorEl)
-						errorEl.textContent = 'Никнейм должен быть не короче 2 символа'
+				if (!nickname || !nickname.trim()) {
+					if (nicknameError) nicknameError.textContent = 'Никнейм обязателен'
 					isValid = false
 				}
 
-				// Валидация URL аватара
-				if (!urlRegex.test(avatarUrl)) {
-					const errorEl = document.getElementById(prefix + 'AvatarUrlError')
-					if (errorEl) errorEl.textContent = 'Некорректный URL аватара'
+				if (!avatarUrl || !avatarUrl.trim()) {
+					if (avatarUrlError)
+						avatarUrlError.textContent = 'URL аватара обязателен'
 					isValid = false
-				}
-
-				// Валидация ссылок
-				if (links) {
-					const linkArray = links.split(',').map(l => l.trim())
-					if (linkArray.some(l => !urlRegex.test(l))) {
-						const errorEl = document.getElementById(prefix + 'LinksError')
-						if (errorEl)
-							errorEl.textContent = 'Все ссылки должны быть корректными URL'
-						isValid = false
-					}
-				}
-
-				// Валидация медалей
-				if (medalsGold < 0 || medalsSilver < 0 || medalsBronze < 0) {
-					const errorEl = document.getElementById(prefix + 'MedalsGoldError')
-					if (errorEl)
-						errorEl.textContent = 'Медали не могут быть отрицательными'
-					isValid = false
-				}
-
-				// Валидация лайков
-				if (likes < 0) {
-					const errorEl = document.getElementById(prefix + 'LikesError')
-					if (errorEl)
-						errorEl.textContent = 'Лайки не могут быть отрицательными'
-					isValid = false
-				}
-
-				// Валидация даты
-				if (joinedAt && new Date(joinedAt) > new Date()) {
-					const errorEl = document.getElementById(prefix + 'JoinedAtError')
-					if (errorEl) errorEl.textContent = 'Дата не может быть в будущем'
+				} else if (!avatarUrl.match(/^https?:\/\/.+/)) {
+					if (avatarUrlError)
+						avatarUrlError.textContent = 'Введите корректный URL'
 					isValid = false
 				}
 
@@ -619,7 +576,9 @@
 			}
 
 			async function addUser() {
-				if (!validateForm()) return
+				if (!validateForm()) {
+					return
+				}
 
 				const userData = {
 					nickname: document.getElementById('nickname').value,
@@ -669,11 +628,18 @@
 				}
 
 				try {
-					const response = await fetch(`${API_URL}/users`, {
+					const token = localStorage.getItem('token')
+					if (!token) {
+						alert('Ошибка авторизации. Пожалуйста, войдите снова.')
+						window.location.reload()
+						return
+					}
+
+					const response = await fetch(`${API_URL}/admin/users`, {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
-							Authorization: `Bearer ${localStorage.getItem('token')}`,
+							Authorization: `Bearer ${token}`,
 						},
 						body: JSON.stringify(userData),
 					})
@@ -690,11 +656,15 @@
 						localStorage.removeItem('token')
 						window.location.reload()
 					} else {
-						const errorData = await response.json()
-						alert(
-							'Ошибка при добавлении пользователя: ' +
-								(errorData.error || 'Неизвестная ошибка')
-						)
+						let errorMessage = 'Неизвестная ошибка'
+						try {
+							const errorData = await response.json()
+							errorMessage = errorData.error || errorMessage
+						} catch (e) {
+							console.error('Ошибка при разборе ответа:', e)
+							errorMessage = `Ошибка сервера: ${response.status} ${response.statusText}`
+						}
+						alert('Ошибка при добавлении пользователя: ' + errorMessage)
 					}
 				} catch (error) {
 					console.error('Ошибка при отправке запроса:', error)
@@ -744,7 +714,9 @@
 			}
 
 			async function updateUser() {
-				if (!validateForm(true)) return
+				if (!validateForm(true)) {
+					return
+				}
 
 				const id = document.getElementById('editUserId').value
 				const userData = {
@@ -780,19 +752,34 @@
 							parseInt(document.getElementById('editMedalsBronze').value) || 0,
 					},
 					likes: parseInt(document.getElementById('editLikes').value) || 0,
-					joined_at: document.getElementById('editJoinedAt').value
-						? new Date(
-								document.getElementById('editJoinedAt').value
-						  ).toISOString()
-						: null,
+					joined_at: null,
+				}
+
+				const joinedAtInput = document.getElementById('editJoinedAt').value
+				if (joinedAtInput) {
+					try {
+						const date = new Date(joinedAtInput)
+						if (!isNaN(date.getTime())) {
+							userData.joined_at = date.toISOString()
+						}
+					} catch (e) {
+						console.error('Ошибка при обработке даты:', e)
+					}
 				}
 
 				try {
-					const response = await fetch(`${API_URL}/users/${id}`, {
+					const token = localStorage.getItem('token')
+					if (!token) {
+						alert('Ошибка авторизации. Пожалуйста, войдите снова.')
+						window.location.reload()
+						return
+					}
+
+					const response = await fetch(`${API_URL}/admin/users/${id}`, {
 						method: 'PUT',
 						headers: {
 							'Content-Type': 'application/json',
-							Authorization: `Bearer ${localStorage.getItem('token')}`,
+							Authorization: `Bearer ${token}`,
 						},
 						body: JSON.stringify(userData),
 					})
@@ -808,8 +795,15 @@
 						localStorage.removeItem('token')
 						window.location.reload()
 					} else {
-						const error = await response.json()
-						alert('Ошибка при обновлении пользователя: ' + error.error)
+						let errorMessage = 'Неизвестная ошибка'
+						try {
+							const errorData = await response.json()
+							errorMessage = errorData.error || errorMessage
+						} catch (e) {
+							console.error('Ошибка при разборе ответа:', e)
+							errorMessage = `Ошибка сервера: ${response.status} ${response.statusText}`
+						}
+						alert('Ошибка при обновлении пользователя: ' + errorMessage)
 					}
 				} catch (error) {
 					console.error('Ошибка при обновлении пользователя:', error)
@@ -820,21 +814,36 @@
 			async function deleteUser(id) {
 				if (confirm('Вы уверены, что хотите удалить этого пользователя?')) {
 					try {
-						const response = await fetch(`${API_URL}/users/${id}`, {
+						const token = localStorage.getItem('token')
+						if (!token) {
+							alert('Ошибка авторизации. Пожалуйста, войдите снова.')
+							window.location.reload()
+							return
+						}
+
+						const response = await fetch(`${API_URL}/admin/users/${id}`, {
 							method: 'DELETE',
 							headers: {
-								Authorization: `Bearer ${localStorage.getItem('token')}`,
+								Authorization: `Bearer ${token}`,
 							},
 						})
 
 						if (response.ok) {
-							loadUsers()
+							await loadUsers()
+							alert('Пользователь успешно удален')
 						} else if (response.status === 401) {
 							localStorage.removeItem('token')
 							window.location.reload()
 						} else {
-							const error = await response.json()
-							alert('Ошибка при удалении пользователя: ' + error.error)
+							let errorMessage = 'Неизвестная ошибка'
+							try {
+								const errorData = await response.json()
+								errorMessage = errorData.error || errorMessage
+							} catch (e) {
+								console.error('Ошибка при разборе ответа:', e)
+								errorMessage = `Ошибка сервера: ${response.status} ${response.statusText}`
+							}
+							alert('Ошибка при удалении пользователя: ' + errorMessage)
 						}
 					} catch (error) {
 						console.error('Ошибка при удалении пользователя:', error)

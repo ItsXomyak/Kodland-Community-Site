@@ -3,339 +3,374 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Kodland Community Site</title>
-		<script src="https://cdn.tailwindcss.com"></script>
-		<link rel="stylesheet" href="styles.css" />
-		<script>
-			tailwind.config = {
-				darkMode: 'class',
-				theme: {
-					extend: {
-						colors: {
-							kodland: '#4169E1',
-						},
-					},
-				},
-			}
-		</script>
+		<title>Kodland Community</title>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
+			rel="stylesheet"
+		/>
 		<style>
-			.modal-content {
-				position: relative;
-				min-height: 400px;
+			.navbar {
+				background-color: #343a40;
 			}
-			.modal-close {
-				position: absolute;
-				top: 1rem;
-				right: 1rem;
-				z-index: 50;
+			.navbar-brand {
+				color: white;
+			}
+			.nav-link {
+				color: rgba(255, 255, 255, 0.75);
+			}
+			.nav-link:hover {
+				color: rgba(255, 255, 255, 1);
+			}
+			.avatar-img {
+				width: 40px;
+				height: 40px;
+				object-fit: cover;
+				border-radius: 50%;
+			}
+			.member-card {
 				cursor: pointer;
-				background: none;
-				border: none;
-				padding: 0.5rem;
+				transition: transform 0.2s;
+			}
+			.member-card:hover {
+				transform: translateY(-5px);
+			}
+			.stat-item {
+				display: inline-flex;
+				align-items: center;
+				margin-right: 10px;
+			}
+			.stat-icon {
+				margin-right: 5px;
+				color: #6c757d;
 			}
 			.like-btn {
-				position: absolute;
-				bottom: 1rem;
-				right: 1rem;
-				z-index: 50;
-				cursor: pointer;
 				background: none;
 				border: none;
-				padding: 0.5rem;
-				display: flex;
-				align-items: center;
-				gap: 0.5rem;
+				padding: 0;
+				cursor: pointer;
+				color: #6c757d;
 			}
-			.modal-close:hover,
 			.like-btn:hover {
-				background-color: rgba(0, 0, 0, 0.1);
-				border-radius: 0.5rem;
+				color: #dc3545;
 			}
-			.dark-theme .modal-close:hover,
-			.dark-theme .like-btn:hover {
-				background-color: rgba(255, 255, 255, 0.1);
+			.like-btn.liked {
+				color: #dc3545;
 			}
 		</style>
 	</head>
-	<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
-		<header class="bg-kodland dark:bg-gray-800 shadow-md">
-			<nav class="container mx-auto px-4 py-4">
-				<div class="flex justify-between items-center">
-					<h1 class="text-2xl font-bold text-kodland text-white">KDS</h1>
-					<button
-						id="themeToggle"
-						class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700"
-					>
-						<svg
-							class="w-6 h-6 text-gray-800 dark:text-white"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-							></path>
-						</svg>
-					</button>
+	<body>
+		<nav class="navbar navbar-expand-lg navbar-dark">
+			<div class="container">
+				<a class="navbar-brand" href="/">Kodland Community</a>
+				<button
+					class="navbar-toggler"
+					type="button"
+					data-bs-toggle="collapse"
+					data-bs-target="#navbarNav"
+				>
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<ul class="navbar-nav ms-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="/admin.html">Админ-панель</a>
+						</li>
+					</ul>
 				</div>
-			</nav>
-		</header>
+			</div>
+		</nav>
 
-		<main class="container mx-auto px-4 py-8">
-			<div class="mb-8">
-				<div class="flex justify-between items-center mb-4">
-					<!-- Основной поиск по никнейму -->
-					<div class="flex-1 mr-4">
+		<div class="container mt-4">
+			<div class="row mb-4">
+				<div class="col-md-6">
+					<div class="input-group">
 						<input
 							type="text"
+							class="form-control"
 							id="searchInput"
-							placeholder="Поиск по никнейму..."
-							class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-kodland focus:border-transparent transition-all duration-200"
+							placeholder="Поиск по имени..."
 						/>
-					</div>
-					<!-- Кнопки управления фильтрами -->
-					<div class="flex space-x-2">
 						<button
-							id="resetFilters"
-							class="flex items-center space-x-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
-							title="Сбросить все фильтры"
+							class="btn btn-outline-secondary"
+							type="button"
+							onclick="search()"
 						>
-							<svg
-								class="w-5 h-5"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-								></path>
-							</svg>
-							<span>Сбросить</span>
-						</button>
-						<button
-							id="filtersToggle"
-							class="flex items-center space-x-2 px-4 py-2 bg-kodland text-white rounded-lg hover:bg-opacity-90 transition-colors duration-200"
-							title="Показать/скрыть фильтры"
-						>
-							<svg
-								class="w-5 h-5"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-								></path>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-								></path>
-							</svg>
-							<span>Фильтры</span>
+							<i class="bi bi-search"></i>
 						</button>
 					</div>
 				</div>
-
-				<!-- Панель фильтров -->
-				<div
-					id="filtersPanel"
-					class="hidden bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-4 transform transition-all duration-300 ease-in-out"
-				>
-					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-						<!-- Фильтр по ролям -->
-						<div>
-							<label
-								class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-								>Роли</label
-							>
-							<select
-								id="roleFilter"
-								class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-kodland focus:border-transparent transition-all duration-200"
-							>
-								<option value="">Все роли</option>
-								<option value="Мемолог">Мемолог</option>
-								<option value="Организатор">Организатор</option>
-								<option value="Технарь">Технарь</option>
-								<option value="Web">Web</option>
-								<option value="Backend">Backend</option>
-								<option value="Event Manager">Event Manager</option>
-							</select>
-						</div>
-
-						<!-- Фильтр по возрасту -->
-						<div>
-							<label
-								class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-								>Возраст</label
-							>
-							<select
-								id="ageFilter"
-								class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-kodland focus:border-transparent transition-all duration-200"
-							>
-								<option value="">Любой возраст</option>
-								<option value="16+ лет">16+ лет</option>
-								<option value="17 лет">17 лет</option>
-								<option value="18+ лет">18+ лет</option>
-							</select>
-						</div>
-
-						<!-- Фильтр по странам -->
-						<div>
-							<label
-								class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-								>Страна</label
-							>
-							<select
-								id="countryFilter"
-								class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-kodland focus:border-transparent transition-all duration-200"
-							>
-								<option value="">Все страны</option>
-								<option value="Германия">Германия</option>
-								<option value="Франция">Франция</option>
-								<option value="Россия">Россия</option>
-							</select>
-						</div>
-
-						<!-- Фильтр по достижениям -->
-						<div>
-							<label
-								class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-								>Достижения</label
-							>
-							<select
-								id="achievementFilter"
-								class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-kodland focus:border-transparent transition-all duration-200"
-							>
-								<option value="">Все достижения</option>
-								<option value="Написал сайт для KDS">
-									Написал сайт для KDS
-								</option>
-								<option value="Организовала 5 ивентов">
-									Организовала 5 ивентов
-								</option>
-								<option value="Написал бота для Discord сервера">
-									Написал бота для Discord сервера
-								</option>
-							</select>
-						</div>
-
-						<!-- Сортировка -->
-						<div>
-							<label
-								class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-								>Сортировка</label
-							>
-							<select
-								id="sortSelect"
-								class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-kodland focus:border-transparent transition-all duration-200"
-							>
-								<option value="recent">По последним изменениям</option>
-								<option value="nickname">По никнеймам</option>
-								<option value="time">По времени в сообществе</option>
-								<option value="achievements">По количеству достижений</option>
-								<option value="likes">По количеству лайков</option>
-								<option value="medals">По количеству медалей</option>
-							</select>
-						</div>
+				<div class="col-md-6">
+					<div class="input-group">
+						<select class="form-select" id="sortSelect" onchange="sort()">
+							<option value="recent">Сначала новые</option>
+							<option value="name">По имени</option>
+							<option value="likes">По лайкам</option>
+						</select>
 					</div>
 				</div>
 			</div>
 
-			<div
-				id="membersGrid"
-				class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-			>
-				<!-- Карточки участников будут добавлены через JavaScript -->
-			</div>
-		</main>
+			<div class="row" id="membersGrid"></div>
+		</div>
 
-		<!-- Модальное окно для полной информации -->
 		<div
+			class="modal fade"
 			id="userModal"
-			class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+			tabindex="-1"
+			aria-labelledby="userModalLabel"
+			aria-hidden="true"
 		>
-			<div
-				class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6 transform transition-all duration-300 scale-95 opacity-0 relative"
-			>
-				<button class="modal-close" onclick="closeModal()">
-					<svg
-						class="w-6 h-6 text-gray-800 dark:text-white"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						></path>
-					</svg>
-				</button>
-
-				<div class="flex justify-between items-start mb-6">
-					<div class="flex items-center space-x-4">
-						<img
-							id="modalAvatar"
-							src=""
-							alt=""
-							class="w-20 h-20 rounded-full object-cover border-2 border-kodland"
-						/>
-						<div>
-							<h2
-								id="modalNickname"
-								class="text-2xl font-bold text-gray-800 dark:text-white"
-							></h2>
-							<p
-								id="modalJoinDate"
-								class="text-gray-600 dark:text-gray-400"
-							></p>
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="userModalLabel">
+							Информация о пользователе
+						</h5>
+						<button
+							type="button"
+							class="btn-close"
+							data-bs-dismiss="modal"
+							aria-label="Close"
+						></button>
+					</div>
+					<div class="modal-body">
+						<div class="row">
+							<div class="col-md-4 text-center">
+								<img
+									id="modalAvatar"
+									src=""
+									alt="Avatar"
+									class="img-fluid rounded-circle mb-3"
+									style="width: 150px; height: 150px; object-fit: cover"
+								/>
+								<h4 id="modalName"></h4>
+								<div class="mb-3">
+									<button
+										class="like-btn"
+										id="modalLikeBtn"
+										onclick="toggleLike()"
+									>
+										<i class="bi bi-heart"></i>
+										<span id="modalLikes">0</span>
+									</button>
+								</div>
+							</div>
+							<div class="col-md-8">
+								<h5>Достижения</h5>
+								<ul id="modalAchievements"></ul>
+								<h5>Роли</h5>
+								<ul id="modalRoles"></ul>
+								<h5>Ссылки</h5>
+								<ul id="modalLinks"></ul>
+								<h5>Медали</h5>
+								<div>
+									<span class="badge bg-warning" id="modalGoldMedals">0</span>
+									<span class="badge bg-secondary" id="modalSilverMedals"
+										>0</span
+									>
+									<span class="badge bg-danger" id="modalBronzeMedals">0</span>
+								</div>
+							</div>
 						</div>
-					</div>
-				</div>
-
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-					<div id="modalAchievements" class="space-y-2"></div>
-					<div id="modalRoles" class="flex flex-wrap gap-2"></div>
-					<div id="modalLinks" class="space-y-2"></div>
-				</div>
-
-				<div class="mt-6 flex items-center justify-between">
-					<div class="text-sm text-gray-500 dark:text-gray-400">
-						Присоединился: <span id="modalCreatedAt"></span>
-					</div>
-					<div class="flex items-center space-x-2">
-						<svg
-							class="w-5 h-5 text-red-500"
-							fill="currentColor"
-							viewBox="0 0 20 20"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-								clip-rule="evenodd"
-							></path>
-						</svg>
-						<span
-							id="modalLikes"
-							class="text-gray-600 dark:text-gray-300"
-						></span>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<script type="module" src="src/script.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+		<script>
+			const API_URL = 'http://localhost:8080/api'
+			let currentUser = null
+
+			document.addEventListener('DOMContentLoaded', () => {
+				loadMembers()
+			})
+
+			async function loadMembers() {
+				try {
+					const response = await fetch(`${API_URL}/users`)
+					if (!response.ok) {
+						throw new Error('Ошибка загрузки данных')
+					}
+					const data = await response.json()
+					displayMembers(data.users)
+				} catch (error) {
+					console.error('Ошибка:', error)
+				}
+			}
+
+			function displayMembers(users) {
+				const grid = document.getElementById('membersGrid')
+				grid.innerHTML = ''
+
+				users.forEach(user => {
+					const col = document.createElement('div')
+					col.className = 'col-md-4 mb-4'
+					col.innerHTML = `
+						<div class="card member-card" onclick="showUserModal(${user.id})">
+							<div class="card-body">
+								<div class="d-flex align-items-center">
+									<img src="${user.avatar_url}" alt="Avatar" class="avatar-img me-3">
+									<div>
+										<h5 class="card-title mb-1">${user.nickname}</h5>
+										<div class="stat-item">
+											<i class="bi bi-heart-fill stat-icon"></i>
+											<span>${user.likes}</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					`
+					grid.appendChild(col)
+				})
+			}
+
+			async function showUserModal(id) {
+				try {
+					const response = await fetch(`${API_URL}/users/${id}`)
+					if (!response.ok) {
+						throw new Error('Пользователь не найден')
+					}
+					const user = await response.json()
+					currentUser = user
+
+					document.getElementById('modalAvatar').src = user.avatar_url
+					document.getElementById('modalName').textContent = user.nickname
+					document.getElementById('modalLikes').textContent = user.likes
+
+					const achievementsList = document.getElementById('modalAchievements')
+					achievementsList.innerHTML = ''
+					user.achievements.forEach(achievement => {
+						const li = document.createElement('li')
+						li.textContent = achievement
+						achievementsList.appendChild(li)
+					})
+
+					const rolesList = document.getElementById('modalRoles')
+					rolesList.innerHTML = ''
+					user.roles.forEach(role => {
+						const li = document.createElement('li')
+						li.textContent = role
+						rolesList.appendChild(li)
+					})
+
+					const linksList = document.getElementById('modalLinks')
+					linksList.innerHTML = ''
+					user.links.forEach(link => {
+						const li = document.createElement('li')
+						const a = document.createElement('a')
+						a.href = link
+						a.textContent = link
+						a.target = '_blank'
+						li.appendChild(a)
+						linksList.appendChild(li)
+					})
+
+					document.getElementById('modalGoldMedals').textContent =
+						user.medals.gold
+					document.getElementById('modalSilverMedals').textContent =
+						user.medals.silver
+					document.getElementById('modalBronzeMedals').textContent =
+						user.medals.bronze
+
+					new bootstrap.Modal(document.getElementById('userModal')).show()
+				} catch (error) {
+					console.error('Ошибка при загрузке данных пользователя:', error)
+					alert('Не удалось загрузить данные пользователя')
+				}
+			}
+
+			async function toggleLike() {
+				if (!currentUser) return
+
+				const likeBtn = document.getElementById('modalLikeBtn')
+				const likesSpan = document.getElementById('modalLikes')
+				const isLiked = likeBtn.classList.contains('liked')
+
+				try {
+					const response = await fetch(
+						`${API_URL}/users/${currentUser.id}/like`,
+						{
+							method: isLiked ? 'DELETE' : 'POST',
+						}
+					)
+
+					if (response.ok) {
+						const data = await response.json()
+						likesSpan.textContent = data.likes
+						likeBtn.classList.toggle('liked')
+						updateCardLikes(currentUser.id, data.likes)
+					} else {
+						throw new Error('Ошибка при обновлении лайков')
+					}
+				} catch (error) {
+					console.error('Ошибка:', error)
+					alert('Не удалось обновить лайки')
+				}
+			}
+
+			function updateCardLikes(userId, likes) {
+				const cards = document.querySelectorAll('.member-card')
+				cards.forEach(card => {
+					if (card.getAttribute('onclick').includes(userId)) {
+						const likesSpan = card.querySelector('.stat-item span')
+						if (likesSpan) {
+							likesSpan.textContent = likes
+						}
+					}
+				})
+			}
+
+			function search() {
+				const searchTerm = document
+					.getElementById('searchInput')
+					.value.toLowerCase()
+				const cards = document.querySelectorAll('.member-card')
+
+				cards.forEach(card => {
+					const name = card
+						.querySelector('.card-title')
+						.textContent.toLowerCase()
+					card.parentElement.style.display = name.includes(searchTerm)
+						? 'block'
+						: 'none'
+				})
+			}
+
+			function sort() {
+				const sortBy = document.getElementById('sortSelect').value
+				const grid = document.getElementById('membersGrid')
+				const cards = Array.from(grid.querySelectorAll('.member-card'))
+
+				cards.sort((a, b) => {
+					const aName = a.querySelector('.card-title').textContent
+					const aLikes = parseInt(
+						a.querySelector('.stat-item span').textContent
+					)
+					const bName = b.querySelector('.card-title').textContent
+					const bLikes = parseInt(
+						b.querySelector('.stat-item span').textContent
+					)
+
+					switch (sortBy) {
+						case 'name':
+							return aName.localeCompare(bName)
+						case 'likes':
+							return bLikes - aLikes
+						default:
+							return 0
+					}
+				})
+
+				cards.forEach(card => {
+					grid.appendChild(card.parentElement)
+				})
+			}
+		</script>
 	</body>
 </html>
