@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Административная панель</title>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
+			rel="stylesheet"
+		/>
+		<style>
+			.sidebar {
+				min-height: 100vh;
+				background-color: #343a40;
+			}
+			.nav-link {
+				color: rgba(255, 255, 255, 0.75);
+			}
+			.nav-link:hover {
+				color: rgba(255, 255, 255, 1);
+			}
+			.nav-link.active {
+				color: white;
+			}
+			.avatar-img {
+				width: 40px;
+				height: 40px;
+				object-fit: cover;
+				border-radius: 50%;
+			}
+			.error {
+				color: red;
+				font-size: 0.8em;
+			}
+			.stat-item {
+				display: inline-flex;
+				align-items: center;
+				margin-right: 10px;
+			}
+			.stat-icon {
+				margin-right: 5px;
+				color: #6c757d;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Login Modal -->
+		<div class="modal fade" id="loginModal" tabindex="-1">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Вход в админ-панель</h5>
+						<button
+							type="button"
+							class="btn-close"
+							data-bs-dismiss="modal"
+						></button>
+					</div>
+					<div class="modal-body">
+						<form id="loginForm">
+							<div class="mb-3">
+								<label for="username" class="form-label"
+									>Имя пользователя</label
+								>
+								<input
+									type="text"
+									class="form-control"
+									id="username"
+									required
+								/>
+							</div>
+							<div class="mb-3">
+								<label for="password" class="form-label">Пароль</label>
+								<input
+									type="password"
+									class="form-control"
+									id="password"
+									required
+								/>
+							</div>
+							<div id="loginError" class="error"></div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" onclick="login()">
+							Войти
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="container-fluid" id="mainContent" style="display: none">
+			<div class="row">
+				<!-- Sidebar -->
+				<div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+					<div class="position-sticky pt-3">
+						<ul class="nav flex-column">
+							<li class="nav-item">
+								<a class="nav-link active" href="#users" data-bs-toggle="tab">
+									<i class="bi bi-people"></i> Пользователи
+								</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="/admin-tables.html">
+									<i class="bi bi-table"></i> Таблицы
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<!-- Main content -->
+				<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+					<div
+						class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+					>
+						<h1 class="h2">Административная панель</h1>
+						<button
+							class="btn btn-primary"
+							data-bs-toggle="modal"
+							data-bs-target="#addUserModal"
+						>
+							<i class="bi bi-plus-lg"></i> Добавить пользователя
+						</button>
+					</div>
+
+					<!-- Users Table -->
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="users">
+							<div class="table-responsive">
+								<table class="table table-striped table-hover">
+									<thead>
+										<tr>
+											<th>ID</th>
+											<th>Никнейм</th>
+											<th>Аватар</th>
+											<th>Роли</th>
+											<th>Достижения</th>
+											<th>Медали</th>
+											<th>Лайки</th>
+											<th>Дата присоединения</th>
+											<th>Действия</th>
+										</tr>
+									</thead>
+									<tbody id="usersTableBody"></tbody>
+								</table>
+							</div>
+							<nav>
+								<ul class="pagination">
+									<li class="page-item">
+										<a class="page-link" href="#" onclick="prevPage()"
+											>Предыдущая</a
+										>
+									</li>
+									<li class="page-item">
+										<a class="page-link" href="#" onclick="nextPage()"
+											>Следующая</a
+										>
+									</li>
+								</ul>
+							</nav>
+						</div>
+					</div>
+				</main>
+			</div>
+		</div>
+
+		<!-- Add User Modal -->
+		<div class="modal fade" id="addUserModal" tabindex="-1">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Добавить пользователя</h5>
+						<button
+							type="button"
+							class="btn-close"
+							data-bs-dismiss="modal"
+						></button>
+					</div>
+					<div class="modal-body">
+						<form id="addUserForm">
+							<div class="mb-3">
+								<label for="nickname" class="form-label">Никнейм</label>
+								<input
+									type="text"
+									class="form-control"
+									id="nickname"
+									required
+								/>
+								<div id="nicknameError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="avatar_url" class="form-label">URL аватара</label>
+								<input
+									type="text"
+									class="form-control"
+									id="avatar_url"
+									required
+								/>
+								<div id="avatarUrlError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="links" class="form-label"
+									>Ссылки (через запятую)</label
+								>
+								<input type="text" class="form-control" id="links" />
+								<div id="linksError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="achievements" class="form-label"
+									>Достижения (через запятую)</label
+								>
+								<input type="text" class="form-control" id="achievements" />
+								<div id="achievementsError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="roles" class="form-label"
+									>Роли (через запятую)</label
+								>
+								<input type="text" class="form-control" id="roles" />
+								<div id="rolesError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="medals_gold" class="form-label"
+									>Золотые медали</label
+								>
+								<input
+									type="number"
+									class="form-control"
+									id="medals_gold"
+									min="0"
+									value="0"
+								/>
+								<div id="medalsGoldError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="medals_silver" class="form-label"
+									>Серебряные медали</label
+								>
+								<input
+									type="number"
+									class="form-control"
+									id="medals_silver"
+									min="0"
+									value="0"
+								/>
+								<div id="medalsSilverError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="medals_bronze" class="form-label"
+									>Бронзовые медали</label
+								>
+								<input
+									type="number"
+									class="form-control"
+									id="medals_bronze"
+									min="0"
+									value="0"
+								/>
+								<div id="medalsBronzeError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="likes" class="form-label">Лайки</label>
+								<input
+									type="number"
+									class="form-control"
+									id="likes"
+									min="0"
+									value="0"
+								/>
+								<div id="likesError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="joined_at" class="form-label"
+									>Дата присоединения</label
+								>
+								<input type="date" class="form-control" id="joined_at" />
+								<div id="joinedAtError" class="error"></div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button
+							type="button"
+							class="btn btn-secondary"
+							data-bs-dismiss="modal"
+						>
+							Отмена
+						</button>
+						<button type="button" class="btn btn-primary" onclick="addUser()">
+							Добавить
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Edit User Modal -->
+		<div class="modal fade" id="editUserModal" tabindex="-1">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Редактировать пользователя</h5>
+						<button
+							type="button"
+							class="btn-close"
+							data-bs-dismiss="modal"
+						></button>
+					</div>
+					<div class="modal-body">
+						<form id="editUserForm">
+							<input type="hidden" id="editUserId" />
+							<div class="mb-3">
+								<label for="editNickname" class="form-label">Никнейм</label>
+								<input
+									type="text"
+									class="form-control"
+									id="editNickname"
+									required
+								/>
+								<div id="editNicknameError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="editAvatarUrl" class="form-label"
+									>URL аватара</label
+								>
+								<input
+									type="text"
+									class="form-control"
+									id="editAvatarUrl"
+									required
+								/>
+								<div id="editAvatarUrlError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="editLinks" class="form-label"
+									>Ссылки (через запятую)</label
+								>
+								<input type="text" class="form-control" id="editLinks" />
+								<div id="editLinksError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="editAchievements" class="form-label"
+									>Достижения (через запятую)</label
+								>
+								<input type="text" class="form-control" id="editAchievements" />
+								<div id="editAchievementsError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="editRoles" class="form-label"
+									>Роли (через запятую)</label
+								>
+								<input type="text" class="form-control" id="editRoles" />
+								<div id="editRolesError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="editMedalsGold" class="form-label"
+									>Золотые медали</label
+								>
+								<input
+									type="number"
+									class="form-control"
+									id="editMedalsGold"
+									min="0"
+								/>
+								<div id="editMedalsGoldError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="editMedalsSilver" class="form-label"
+									>Серебряные медали</label
+								>
+								<input
+									type="number"
+									class="form-control"
+									id="editMedalsSilver"
+									min="0"
+								/>
+								<div id="editMedalsSilverError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="editMedalsBronze" class="form-label"
+									>Бронзовые медали</label
+								>
+								<input
+									type="number"
+									class="form-control"
+									id="editMedalsBronze"
+									min="0"
+								/>
+								<div id="editMedalsBronzeError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="editLikes" class="form-label">Лайки</label>
+								<input
+									type="number"
+									class="form-control"
+									id="editLikes"
+									min="0"
+								/>
+								<div id="editLikesError" class="error"></div>
+							</div>
+							<div class="mb-3">
+								<label for="editJoinedAt" class="form-label"
+									>Дата присоединения</label
+								>
+								<input type="date" class="form-control" id="editJoinedAt" />
+								<div id="editJoinedAtError" class="error"></div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button
+							type="button"
+							class="btn btn-secondary"
+							data-bs-dismiss="modal"
+						>
+							Отмена
+						</button>
+						<button
+							type="button"
+							class="btn btn-primary"
+							onclick="updateUser()"
+						>
+							Сохранить
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+		<script>
+			const API_URL = 'http://localhost:8080/api'
+
+			let token = null
+			let currentPage = 1
+			const limit = 12
+
+			// Показать форму логина при загрузке
+			document.addEventListener('DOMContentLoaded', () => {
+				new bootstrap.Modal(document.getElementById('loginModal'), {
+					backdrop: 'static',
+					keyboard: false,
+				}).show()
+			})
+
+			async function login() {
+				const username = document.getElementById('username').value
+				const password = document.getElementById('password').value
+				const errorElement = document.getElementById('loginError')
+
+				try {
+					const response = await fetch(`${API_URL}/login`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ username, password }),
+						credentials: 'include',
+					})
+
+					if (!response.ok) {
+						throw new Error('Неверные учетные данные')
+					}
+
+					const data = await response.json()
+
+					// Сохраняем токен
+					localStorage.setItem('token', data.access_token)
+
+					// Скрываем модальное окно и показываем основной контент
+					const loginModal = bootstrap.Modal.getInstance(
+						document.getElementById('loginModal')
+					)
+					loginModal.hide()
+					document.getElementById('mainContent').style.display = 'block'
+
+					// Загружаем данные
+					loadUsers()
+				} catch (error) {
+					errorElement.textContent = error.message
+				}
+			}
+
+			async function loadUsers() {
+				try {
+					const response = await fetch(`${API_URL}/users`, {
+						headers: {
+							Authorization: `Bearer ${localStorage.getItem('token')}`,
+						},
+					})
+
+					if (!response.ok) {
+						if (response.status === 401) {
+							// Токен истек или недействителен
+							localStorage.removeItem('token')
+							window.location.reload()
+							return
+						}
+						throw new Error('Ошибка загрузки данных')
+					}
+
+					const data = await response.json()
+					displayUsers(data.users)
+				} catch (error) {
+					console.error('Ошибка:', error)
+				}
+			}
+
+			function displayUsers(users) {
+				const tbody = document.getElementById('usersTableBody')
+				tbody.innerHTML = ''
+
+				users.forEach(user => {
+					const tr = document.createElement('tr')
+					tr.innerHTML = `
+						<td>${user.id}</td>
+						<td>${user.nickname}</td>
+						<td><img src="${user.avatar_url}" alt="Avatar" class="avatar-img"></td>
+						<td>${user.roles.join(', ')}</td>
+						<td>${user.achievements.join(', ')}</td>
+						<td>
+							<span class="badge bg-warning">${user.medals.gold}</span>
+							<span class="badge bg-secondary">${user.medals.silver}</span>
+							<span class="badge bg-danger">${user.medals.bronze}</span>
+						</td>
+						<td>${user.likes}</td>
+						<td>${new Date(user.joined_at).toLocaleDateString()}</td>
+						<td>
+							<div class="stat-item">
+								<i class="bi bi-person-badge-fill stat-icon"></i>
+								<span>1</span>
+							</div>
+							<button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">
+								<i class="bi bi-pencil"></i>
+							</button>
+							<button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">
+								<i class="bi bi-trash"></i>
+							</button>
+						</td>
+					`
+					tbody.appendChild(tr)
+				})
+			}
+
+			function validateForm() {
+				const nickname = document.getElementById('nickname').value
+				const avatarUrl = document.getElementById('avatar_url').value
+				const nicknameError = document.getElementById('nicknameError')
+				const avatarUrlError = document.getElementById('avatarUrlError')
+
+				let isValid = true
+
+				// Очищаем предыдущие ошибки
+				nicknameError.textContent = ''
+				avatarUrlError.textContent = ''
+
+				// Проверка никнейма
+				if (!nickname.trim()) {
+					nicknameError.textContent = 'Никнейм обязателен'
+					isValid = false
+				}
+
+				// Проверка URL аватара
+				if (!avatarUrl.trim()) {
+					avatarUrlError.textContent = 'URL аватара обязателен'
+					isValid = false
+				} else if (!avatarUrl.match(/^https?:\/\/.+/)) {
+					avatarUrlError.textContent = 'Введите корректный URL'
+					isValid = false
+				}
+
+				return isValid
+			}
+
+			async function addUser() {
+				if (!validateForm()) {
+					return
+				}
+
+				const userData = {
+					nickname: document.getElementById('nickname').value,
+					avatar_url: document.getElementById('avatar_url').value,
+					links: document.getElementById('links').value
+						? document
+								.getElementById('links')
+								.value.split(',')
+								.map(l => l.trim())
+								.filter(l => l)
+						: [],
+					achievements: document.getElementById('achievements').value
+						? document
+								.getElementById('achievements')
+								.value.split(',')
+								.map(a => a.trim())
+								.filter(a => a)
+						: [],
+					roles: document.getElementById('roles').value
+						? document
+								.getElementById('roles')
+								.value.split(',')
+								.map(r => r.trim())
+								.filter(r => r)
+						: [],
+					medals: {
+						gold: parseInt(document.getElementById('medals_gold').value) || 0,
+						silver:
+							parseInt(document.getElementById('medals_silver').value) || 0,
+						bronze:
+							parseInt(document.getElementById('medals_bronze').value) || 0,
+					},
+					likes: parseInt(document.getElementById('likes').value) || 0,
+					joined_at: null,
+				}
+
+				const joinedAtInput = document.getElementById('joined_at').value
+				if (joinedAtInput) {
+					try {
+						const date = new Date(joinedAtInput)
+						if (!isNaN(date.getTime())) {
+							userData.joined_at = date.toISOString()
+						}
+					} catch (e) {
+						console.error('Ошибка при обработке даты:', e)
+					}
+				}
+
+				try {
+					const token = localStorage.getItem('token')
+					if (!token) {
+						alert('Ошибка авторизации. Пожалуйста, войдите снова.')
+						window.location.reload()
+						return
+					}
+
+					const response = await fetch(`${API_URL}/admin/users`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${token}`,
+						},
+						body: JSON.stringify(userData),
+					})
+
+					if (response.ok) {
+						const modal = bootstrap.Modal.getInstance(
+							document.getElementById('addUserModal')
+						)
+						if (modal) modal.hide()
+						document.getElementById('addUserForm').reset()
+						await loadUsers()
+						alert('Пользователь успешно добавлен')
+					} else if (response.status === 401) {
+						localStorage.removeItem('token')
+						window.location.reload()
+					} else {
+						let errorMessage = 'Неизвестная ошибка'
+						try {
+							const errorData = await response.json()
+							errorMessage = errorData.error || errorMessage
+						} catch (e) {
+							console.error('Ошибка при разборе ответа:', e)
+							errorMessage = `Ошибка сервера: ${response.status} ${response.statusText}`
+						}
+						alert('Ошибка при добавлении пользователя: ' + errorMessage)
+					}
+				} catch (error) {
+					console.error('Ошибка при отправке запроса:', error)
+					alert(
+						'Не удалось добавить пользователя. Проверьте подключение к серверу.'
+					)
+				}
+			}
+
+			async function editUser(id) {
+				try {
+					const response = await fetch(`${API_URL}/users/${id}`, {
+						headers: {
+							Authorization: `Bearer ${localStorage.getItem('token')}`,
+						},
+					})
+					if (!response.ok) {
+						if (response.status === 401) {
+							localStorage.removeItem('token')
+							window.location.reload()
+							return
+						}
+						throw new Error('Пользователь не найден')
+					}
+					const user = await response.json()
+
+					document.getElementById('editUserId').value = user.id
+					document.getElementById('editNickname').value = user.nickname
+					document.getElementById('editAvatarUrl').value = user.avatar_url
+					document.getElementById('editLinks').value = user.links.join(', ')
+					document.getElementById('editAchievements').value =
+						user.achievements.join(', ')
+					document.getElementById('editRoles').value = user.roles.join(', ')
+					document.getElementById('editMedalsGold').value = user.medals.gold
+					document.getElementById('editMedalsSilver').value = user.medals.silver
+					document.getElementById('editMedalsBronze').value = user.medals.bronze
+					document.getElementById('editLikes').value = user.likes
+					document.getElementById('editJoinedAt').value = user.joined_at
+						? new Date(user.joined_at).toISOString().slice(0, 16)
+						: ''
+
+					new bootstrap.Modal(document.getElementById('editUserModal')).show()
+				} catch (error) {
+					console.error('Ошибка при загрузке данных пользователя:', error)
+					alert('Не удалось загрузить данные пользователя')
+				}
+			}
+
+			async function updateUser() {
+				if (!validateForm(true)) return
+
+				const id = document.getElementById('editUserId').value
+				const userData = {
+					nickname: document.getElementById('editNickname').value,
+					avatar_url: document.getElementById('editAvatarUrl').value,
+					links: document.getElementById('editLinks').value
+						? document
+								.getElementById('editLinks')
+								.value.split(',')
+								.map(l => l.trim())
+								.filter(l => l)
+						: [],
+					achievements: document.getElementById('editAchievements').value
+						? document
+								.getElementById('editAchievements')
+								.value.split(',')
+								.map(a => a.trim())
+								.filter(a => a)
+						: [],
+					roles: document.getElementById('editRoles').value
+						? document
+								.getElementById('editRoles')
+								.value.split(',')
+								.map(r => r.trim())
+								.filter(r => r)
+						: [],
+					medals: {
+						gold:
+							parseInt(document.getElementById('editMedalsGold').value) || 0,
+						silver:
+							parseInt(document.getElementById('editMedalsSilver').value) || 0,
+						bronze:
+							parseInt(document.getElementById('editMedalsBronze').value) || 0,
+					},
+					likes: parseInt(document.getElementById('editLikes').value) || 0,
+					joined_at: document.getElementById('editJoinedAt').value
+						? new Date(
+								document.getElementById('editJoinedAt').value
+						  ).toISOString()
+						: null,
+				}
+
+				try {
+					const response = await fetch(`${API_URL}/admin/users/${id}`, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${localStorage.getItem('token')}`,
+						},
+						body: JSON.stringify(userData),
+					})
+
+					if (response.ok) {
+						const modal = bootstrap.Modal.getInstance(
+							document.getElementById('editUserModal')
+						)
+						if (modal) modal.hide()
+						await loadUsers()
+						alert('Пользователь успешно обновлен')
+					} else if (response.status === 401) {
+						localStorage.removeItem('token')
+						window.location.reload()
+					} else {
+						const error = await response.json()
+						alert('Ошибка при обновлении пользователя: ' + error.error)
+					}
+				} catch (error) {
+					console.error('Ошибка при обновлении пользователя:', error)
+					alert('Не удалось обновить пользователя')
+				}
+			}
+
+			async function deleteUser(id) {
+				if (confirm('Вы уверены, что хотите удалить этого пользователя?')) {
+					try {
+						const response = await fetch(`${API_URL}/users/${id}`, {
+							method: 'DELETE',
+							headers: {
+								Authorization: `Bearer ${localStorage.getItem('token')}`,
+							},
+						})
+
+						if (response.ok) {
+							loadUsers()
+						} else if (response.status === 401) {
+							localStorage.removeItem('token')
+							window.location.reload()
+						} else {
+							const error = await response.json()
+							alert('Ошибка при удалении пользователя: ' + error.error)
+						}
+					} catch (error) {
+						console.error('Ошибка при удалении пользователя:', error)
+						alert('Не удалось удалить пользователя')
+					}
+				}
+			}
+
+			function prevPage() {
+				if (currentPage > 1) {
+					currentPage--
+					loadUsers()
+				}
+			}
+
+			function nextPage() {
+				currentPage++
+				loadUsers()
+			}
+		</script>
+	</body>
+</html>

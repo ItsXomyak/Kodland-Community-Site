@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Kodland Community</title>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="src/index.css" />
+	</head>
+	<body>
+		<nav class="navbar navbar-expand-lg">
+			<div class="container">
+				<a class="navbar-brand" href="#">Kodland Community</a>
+				<button
+					class="navbar-toggler"
+					type="button"
+					data-bs-toggle="collapse"
+					data-bs-target="#navbarNav"
+				>
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<ul class="navbar-nav ms-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="/index-tables.html">Таблицы</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="/admin.html">Админ панель</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+
+		<div class="container mt-4">
+			<div class="search-container">
+				<div class="row">
+					<div class="col-md-8">
+						<input
+							type="text"
+							class="form-control"
+							id="searchInput"
+							placeholder="Поиск по никнейму..."
+						/>
+					</div>
+					<div class="col-md-4">
+						<select class="form-select" id="sortSelect">
+							<option value="recent">Сначала новые</option>
+							<option value="nickname">По никнейму</option>
+							<option value="time">По дате присоединения</option>
+							<option value="achievements">По достижениям</option>
+							<option value="likes">По лайкам</option>
+							<option value="medals">По медалям</option>
+						</select>
+					</div>
+				</div>
+			</div>
+
+			<div class="filter-container">
+				<div class="row">
+					<div class="col-md-3">
+						<div class="filter-group">
+							<label for="roleFilter">Роль</label>
+							<select class="form-select" id="roleFilter">
+								<option value="">Все роли</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="filter-group">
+							<label for="ageFilter">Возраст</label>
+							<select class="form-select" id="ageFilter">
+								<option value="">Все возрасты</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="filter-group">
+							<label for="countryFilter">Страна</label>
+							<select class="form-select" id="countryFilter">
+								<option value="">Все страны</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="filter-group">
+							<label for="achievementFilter">Достижение</label>
+							<select class="form-select" id="achievementFilter">
+								<option value="">Все достижения</option>
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="row" id="membersGrid"></div>
+
+			<nav aria-label="Page navigation">
+				<ul class="pagination" id="pagination"></ul>
+			</nav>
+		</div>
+
+		<div class="modal fade" id="userModal" tabindex="-1">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Информация о пользователе</h5>
+						<button
+							type="button"
+							class="btn-close"
+							data-bs-dismiss="modal"
+						></button>
+					</div>
+					<div class="modal-body">
+						<div class="row">
+							<div class="col-md-4 text-center">
+								<img
+									id="modalAvatar"
+									class="img-fluid rounded-circle mb-3"
+									style="width: 150px; height: 150px; object-fit: cover"
+								/>
+								<h4 id="modalNickname" class="mb-2"></h4>
+								<p id="modalJoinDate" class="text-muted"></p>
+							</div>
+							<div class="col-md-8">
+								<div class="mb-4">
+									<h5>Роли</h5>
+									<div id="modalRoles" class="member-roles"></div>
+								</div>
+								<div class="mb-4">
+									<h5>Достижения</h5>
+									<div id="modalAchievements" class="member-roles"></div>
+								</div>
+								<div class="mb-4">
+									<h5>Ссылки</h5>
+									<div id="modalLinks"></div>
+								</div>
+								<div class="mb-4">
+									<h5>Медали</h5>
+									<div class="d-flex gap-3">
+										<div class="text-center">
+											<i
+												class="bi bi-trophy-fill text-warning"
+												style="font-size: 2rem"
+											></i>
+											<p class="mb-0" id="modalGoldMedals">0</p>
+										</div>
+										<div class="text-center">
+											<i
+												class="bi bi-trophy-fill text-secondary"
+												style="font-size: 2rem"
+											></i>
+											<p class="mb-0" id="modalSilverMedals">0</p>
+										</div>
+										<div class="text-center">
+											<i
+												class="bi bi-trophy-fill text-danger"
+												style="font-size: 2rem"
+											></i>
+											<p class="mb-0" id="modalBronzeMedals">0</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+		<script>
+			const API_URL = 'http://localhost:8080/api'
+			let currentPage = 1
+			const limit = 12
+			let totalPages = 1
+			let likedUsers = new Set()
+
+			// Загрузка данных при старте
+			document.addEventListener('DOMContentLoaded', () => {
+				loadUsers()
+				setupEventListeners()
+			})
+
+			function setupEventListeners() {
+				// Поиск
+				document
+					.getElementById('searchInput')
+					.addEventListener('input', debounce(loadUsers, 500))
+
+				// Сортировка
+				document
+					.getElementById('sortSelect')
+					.addEventListener('change', loadUsers)
+
+				// Фильтры
+				document
+					.getElementById('roleFilter')
+					.addEventListener('change', loadUsers)
+				document
+					.getElementById('ageFilter')
+					.addEventListener('change', loadUsers)
+				document
+					.getElementById('countryFilter')
+					.addEventListener('change', loadUsers)
+				document
+					.getElementById('achievementFilter')
+					.addEventListener('change', loadUsers)
+			}
+
+			function debounce(func, wait) {
+				let timeout
+				return function executedFunction(...args) {
+					const later = () => {
+						clearTimeout(timeout)
+						func(...args)
+					}
+					clearTimeout(timeout)
+					timeout = setTimeout(later, wait)
+				}
+			}
+
+			async function loadUsers() {
+				const search = document.getElementById('searchInput').value
+				const sort = document.getElementById('sortSelect').value
+				const role = document.getElementById('roleFilter').value
+				const age = document.getElementById('ageFilter').value
+				const country = document.getElementById('countryFilter').value
+				const achievement = document.getElementById('achievementFilter').value
+
+				try {
+					const response = await fetch(
+						`${API_URL}/users?page=${currentPage}&limit=${limit}&search=${search}&sort=${sort}&role=${role}&age=${age}&country=${country}&achievement=${achievement}`
+					)
+					const data = await response.json()
+
+					displayUsers(data.users)
+					updatePagination(data.total)
+					updateFilters(data.users)
+				} catch (error) {
+					console.error('Ошибка при загрузке данных:', error)
+				}
+			}
+
+			function displayUsers(users) {
+				const grid = document.getElementById('membersGrid')
+				grid.innerHTML = ''
+
+				users.forEach(user => {
+					const card = document.createElement('div')
+					card.className = 'col-md-4 col-lg-3 mb-4'
+					card.innerHTML = `
+						<div class="member-card">
+							<img src="${user.avatar_url}" class="member-avatar" alt="${user.nickname}" />
+							<div class="member-info">
+								<h5 class="member-name">${user.nickname}</h5>
+								<div class="member-roles">
+									${user.roles.map(role => `<span class="role-badge">${role}</span>`).join('')}
+								</div>
+								<div class="member-stats">
+									<div class="stat-item">
+										<i class="bi bi-trophy-fill stat-icon"></i>
+										<span>${user.medals.gold + user.medals.silver + user.medals.bronze}</span>
+									</div>
+									<div class="stat-item">
+										<i class="bi bi-star-fill stat-icon"></i>
+										<span>${user.achievements.length}</span>
+									</div>
+									<button class="like-button ${likedUsers.has(user.id) ? 'liked' : ''}" 
+											onclick="toggleLike('${user.id}', event)">
+										<i class="bi bi-heart${likedUsers.has(user.id) ? '-fill' : ''}"></i>
+										<span>${user.likes}</span>
+									</button>
+								</div>
+							</div>
+						</div>
+					`
+
+					// Добавляем обработчик клика на карточку, исключая клик по кнопке лайка
+					card.querySelector('.member-card').addEventListener('click', e => {
+						if (!e.target.closest('.like-button')) {
+							showUserModal(user)
+						}
+					})
+
+					grid.appendChild(card)
+				})
+			}
+
+			function updatePagination(total) {
+				totalPages = Math.ceil(total / limit)
+				const pagination = document.getElementById('pagination')
+				pagination.innerHTML = ''
+
+				// Кнопка "Назад"
+				const prevLi = document.createElement('li')
+				prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`
+				prevLi.innerHTML = '<a class="page-link" href="#">Назад</a>'
+				prevLi.addEventListener('click', e => {
+					e.preventDefault()
+					if (currentPage > 1) {
+						currentPage--
+						loadUsers()
+					}
+				})
+				pagination.appendChild(prevLi)
+
+				// Номера страниц
+				for (let i = 1; i <= totalPages; i++) {
+					const li = document.createElement('li')
+					li.className = `page-item ${currentPage === i ? 'active' : ''}`
+					li.innerHTML = `<a class="page-link" href="#">${i}</a>`
+					li.addEventListener('click', e => {
+						e.preventDefault()
+						currentPage = i
+						loadUsers()
+					})
+					pagination.appendChild(li)
+				}
+
+				// Кнопка "Вперед"
+				const nextLi = document.createElement('li')
+				nextLi.className = `page-item ${
+					currentPage === totalPages ? 'disabled' : ''
+				}`
+				nextLi.innerHTML = '<a class="page-link" href="#">Вперед</a>'
+				nextLi.addEventListener('click', e => {
+					e.preventDefault()
+					if (currentPage < totalPages) {
+						currentPage++
+						loadUsers()
+					}
+				})
+				pagination.appendChild(nextLi)
+			}
+
+			function updateFilters(users) {
+				const roles = new Set()
+				const ages = new Set()
+				const countries = new Set()
+				const achievements = new Set()
+
+				users.forEach(user => {
+					user.roles.forEach(role => roles.add(role))
+					user.achievements.forEach(achievement =>
+						achievements.add(achievement)
+					)
+				})
+
+				updateSelectOptions('roleFilter', roles)
+				updateSelectOptions('achievementFilter', achievements)
+			}
+
+			function updateSelectOptions(selectId, options) {
+				const select = document.getElementById(selectId)
+				const currentValue = select.value
+
+				// Сохраняем первый option (Все...)
+				const firstOption = select.options[0]
+				select.innerHTML = ''
+				select.appendChild(firstOption)
+
+				// Добавляем новые опции
+				options.forEach(option => {
+					const optionElement = document.createElement('option')
+					optionElement.value = option
+					optionElement.textContent = option
+					select.appendChild(optionElement)
+				})
+
+				// Восстанавливаем выбранное значение
+				select.value = currentValue
+			}
+
+			async function toggleLike(userId, event) {
+				if (event) {
+					event.stopPropagation() // Предотвращаем всплытие события клика
+				}
+
+				try {
+					const response = await fetch(`${API_URL}/users/${userId}/like`, {
+						method: 'POST',
+					})
+
+					if (response.ok) {
+						const data = await response.json()
+
+						// Обновляем только конкретную карточку
+						const likeButton = document.querySelector(
+							`button.like-button[onclick*="${userId}"]`
+						)
+						const likesCount = likeButton.querySelector('span')
+
+						if (likedUsers.has(userId)) {
+							likedUsers.delete(userId)
+							likeButton.querySelector('i').className = 'bi bi-heart'
+						} else {
+							likedUsers.add(userId)
+							likeButton.querySelector('i').className = 'bi bi-heart-fill'
+						}
+
+						// Обновляем количество лайков
+						likesCount.textContent = data.likes
+
+						// Если открыто модальное окно этого пользователя, обновляем и его
+						const modalLikes = document.getElementById('modalLikes')
+						if (modalLikes && modalLikes.dataset.userId === userId) {
+							modalLikes.textContent = data.likes
+						}
+					}
+				} catch (error) {
+					console.error('Ошибка при отправке лайка:', error)
+				}
+			}
+
+			function showUserModal(user) {
+				document.getElementById('modalAvatar').src = user.avatar_url
+				document.getElementById('modalNickname').textContent = user.nickname
+				document.getElementById(
+					'modalJoinDate'
+				).textContent = `Присоединился: ${new Date(
+					user.joined_at
+				).toLocaleDateString()}`
+
+				const rolesContainer = document.getElementById('modalRoles')
+				rolesContainer.innerHTML = user.roles
+					.map(role => `<span class="role-badge">${role}</span>`)
+					.join('')
+
+				const achievementsContainer =
+					document.getElementById('modalAchievements')
+				achievementsContainer.innerHTML = user.achievements
+					.map(achievement => `<span class="role-badge">${achievement}</span>`)
+					.join('')
+
+				const linksContainer = document.getElementById('modalLinks')
+				linksContainer.innerHTML = user.links
+					.map(
+						link =>
+							`<a href="${link}" target="_blank" class="d-block mb-2">${link}</a>`
+					)
+					.join('')
+
+				document.getElementById('modalGoldMedals').textContent =
+					user.medals.gold
+				document.getElementById('modalSilverMedals').textContent =
+					user.medals.silver
+				document.getElementById('modalBronzeMedals').textContent =
+					user.medals.bronze
+
+				new bootstrap.Modal(document.getElementById('userModal')).show()
+			}
+		</script>
+	</body>
+</html>

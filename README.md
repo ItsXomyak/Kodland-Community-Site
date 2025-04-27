@@ -1,2 +1,140 @@
-# Kodland-Community-Site
-The website is an informative board on the achievements of community members KDS.
+# Kodland Community Site
+
+Проект представляет собой веб-приложение для сообщества Kodland, которое позволяет просматривать профили пользователей, их достижения и медали.
+
+## Функциональность
+
+### Основные возможности:
+
+- Просмотр списка пользователей в виде карточек
+- Поиск пользователей по никнейму
+- Сортировка пользователей по различным параметрам
+- Фильтрация пользователей по ролям и достижениям
+- Просмотр подробной информации о пользователе в модальном окне
+- Система лайков для пользователей
+- Пагинация списка пользователей
+
+### Детали реализации:
+
+- Адаптивный дизайн (поддерживает мобильные устройства)
+- Модальные окна для отображения подробной информации
+- Динамическая загрузка данных с сервера
+- Кэширование лайков в локальном хранилище
+- Оптимизированная работа с DOM
+
+## Структура проекта
+
+```
+kodland-community-site/
+├── kds-frontend/           # Фронтенд часть приложения
+│   │   .gitignore
+│   admin-tables.html
+│   admin.html
+│   index-tables.html
+│   index.html
+│   package-lock.json
+│   package.json
+│   vite.config.js
+│
+├───public
+└───src
+        index.css
+        main.js
+        script.js
+        style.css
+        
+└── kds-backend/           # Бэкенд часть приложения
+    ├───cmd
+    ├───internal
+    │   ├───auth
+    │   ├───config
+    │   ├───db
+    │   ├───handlers
+    │   ├───middleware
+    │   └───models
+    └───sql
+```
+
+## Технологии
+
+### Фронтенд:
+
+- HTML5
+- CSS3
+- JavaScript (ES6+)
+- Bootstrap 5.3.0
+- Tailwind
+
+### Бэкенд:
+
+- Go 1.22.0
+- PostgreSQL
+- Docker
+
+## Установка и запуск
+
+### Запуск бэкенда:
+
+1. Перейдите в директорию `kds-backend`
+2. Выполните команду:
+   ```bash
+   docker-compose up --build
+   ```
+
+### Запуск фронтенда:
+
+1. Перейдите в директорию `kds-frontend`
+2. Выполните команду:
+
+```bash
+npm install
+npm run dev
+```
+
+## API Endpoints
+
+### Пользователи:
+
+- `GET /api/users` - Получение списка пользователей
+- `GET /api/users/{id}` - Получение информации о конкретном пользователе
+- `POST /api/users/{id}/like` - Постановка лайка пользователю
+
+### Параметры запросов:
+
+- `page` - Номер страницы
+- `limit` - Количество элементов на странице
+- `search` - Поисковый запрос
+- `sort` - Параметр сортировки
+- `role` - Фильтр по роли
+- `age` - Фильтр по возрасту
+- `country` - Фильтр по стране
+- `achievement` - Фильтр по достижению
+
+## Разработка
+
+## Лицензия
+
+MIT License
+
+## Контакты
+
+Для вопросов и предложений обращайтесь в issues проекта.
+
+Управление таблицами:
+POST /api/tables - Создать новую таблицу
+GET /api/tables - Получить список таблиц
+GET /api/tables/{id} - Получить конкретную таблицу
+PUT /api/tables/{id} - Обновить таблицу
+DELETE /api/tables/{id} - Удалить таблицу
+
+Управление колонками:
+POST /api/tables/{id}/columns - Добавить колонку
+PUT /api/tables/{id}/columns/{columnId} - Изменить колонку
+DELETE /api/tables/{id}/columns/{columnId} - Удалить колонку
+PUT /api/tables/{id}/columns/reorder - Изменить порядок колонок
+
+Управление данными:
+POST /api/tables/{id}/rows - Добавить строку
+PUT /api/tables/{id}/rows/{rowId} - Обновить строку
+DELETE /api/tables/{id}/rows/{rowId} - Удалить строку
+GET /api/tables/{id}/rows - Получить данные с пагинацией
