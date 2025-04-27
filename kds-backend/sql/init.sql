@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS likes CASCADE;
 DROP TABLE IF EXISTS accounts CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS tables CASCADE;
 
 -- таблица пользователей
 CREATE TABLE users (
@@ -38,6 +39,17 @@ CREATE TABLE likes (
     UNIQUE (from_account_id, to_user_id)
 );
 
+CREATE TABLE IF NOT EXISTS tables (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    data TEXT NOT NULL, -- Хранит данные, разделенные пробелами, например: "cross_0673 5 femboygayfunny 5"
+    created_by INT NOT NULL,
+    is_public BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE INDEX idx_users_nickname ON users (nickname);
 CREATE INDEX idx_users_joined_at ON users (joined_at);
 CREATE INDEX idx_users_likes ON users (likes);
@@ -51,11 +63,11 @@ VALUES
 (
     'scrameee',
     'https://robohash.org/scrameee',
-    '["https://github.com/scrameee", "https://itch.io/profile/scrameee"]',
+    '["https://github.com/ItsXomyak", "https://itch.io/profile/scrameee", "https://github.com/ItsXomyak"]',
     '["Написал сайт для KDS"]',
     '["Мемолог", "16+ лет", "Германия", "Web"]',
     '{"gold": 2, "silver": 1, "bronze": 0}',
-    5,
+    1984,
     NOW() - INTERVAL '300 days'
 ),
 (

@@ -38,6 +38,6 @@ type UpdateUserRequest struct {
 	Achievements []string      `json:"achievements"`
 	Roles       []string       `json:"roles"`
 	Medals      map[string]int `json:"medals"`
-	Likes       *int           `json:"likes"` // Указатель, чтобы позволить null
-	JoinedAt    *time.Time     `json:"joined_at"` // Указатель, чтобы позволить null
+	Likes       *int           `json:"likes"`
+	JoinedAt    *time.Time     `json:"joined_at"` 
 }
