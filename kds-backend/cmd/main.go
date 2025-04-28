@@ -22,10 +22,13 @@ func main() {
 
     r := gin.Default()
 
+    // Базовые middleware
+    r.Use(middleware.LoggingMiddleware())
     r.Use(middleware.CORSMiddleware())
     r.Use(middleware.XSSMiddleware())
     r.Use(middleware.SecurityHeadersMiddleware())
     r.Use(middleware.RateLimitMiddleware(100))
+    r.Use(middleware.RequestSizeMiddleware(10 * 1024 * 1024)) // 10MB
 
     // Публичные маршруты
     public := r.Group("/api")
@@ -44,6 +47,12 @@ func main() {
     // Защищенные маршруты
     admin := r.Group("/api/admin")
     admin.Use(auth.JWTAuthMiddleware())
+    admin.Use(middleware.CSRFMiddleware())
+    admin.Use(middleware.IPWhitelistMiddleware([]string{
+        "127.0.0.1",
+        "::1",
+        // Добавьте здесь IP адреса администраторов
+    }))
     {
         admin.GET("/users", func(c *gin.Context) { handlers.GetUsers(c, db) })
         admin.POST("/users", func(c *gin.Context) { handlers.CreateUser(c, db) })

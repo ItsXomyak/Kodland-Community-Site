@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    display_name VARCHAR(100) NOT NULL,
+    is_active BOOLEAN DEFAULT FALSE,
+    role VARCHAR(20) DEFAULT 'user',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    failed_login_attempts INTEGER DEFAULT 0,
+    last_failed_login TIMESTAMP WITH TIME ZONE
+); 
