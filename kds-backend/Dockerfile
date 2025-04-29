@@ -29,8 +29,6 @@ RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositor
 COPY --from=builder /app/main .
 COPY --from=builder /app/sql/init.sql ./sql/
 
-# Устанавливаем переменные окружения
-ENV PGPASSWORD=password
-
 # Команда для запуска
-CMD ["sh", "-c", "until pg_isready -h db -p 5432 -U postgres -d kodland; do sleep 1; done && psql -h db -p 5432 -U postgres -d kodland -f /app/sql/init.sql && /app/main"]
+CMD sh -c 'export PGPASSWORD=$POSTGRES_PASSWORD && until pg_isready -h db -p 5432 -U postgres -d kodlanddb; do sleep 1; done && psql -h db -p 5432 -U postgres -d kodlanddb -f /app/sql/init.sql && /app/main'
+

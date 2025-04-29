@@ -8,6 +8,7 @@ services:
     ports:
       - '${APP_PORT}:${APP_PORT}'
     environment:
+      - APP_PORT=${APP_PORT}
       - DATABASE_URL=${DATABASE_URL}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
