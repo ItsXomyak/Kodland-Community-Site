@@ -120,18 +120,7 @@ MIT License
 
 Для вопросов и предложений обращайтесь в issues проекта.
 
-Управление таблицами:
-POST /api/tables - Создать новую таблицу
-GET /api/tables - Получить список таблиц
-GET /api/tables/{id} - Получить конкретную таблицу
-PUT /api/tables/{id} - Обновить таблицу
-DELETE /api/tables/{id} - Удалить таблицу
 
-Управление колонками:
-POST /api/tables/{id}/columns - Добавить колонку
-PUT /api/tables/{id}/columns/{columnId} - Изменить колонку
-DELETE /api/tables/{id}/columns/{columnId} - Удалить колонку
-PUT /api/tables/{id}/columns/reorder - Изменить порядок колонок
 
 Управление данными:
 POST /api/tables/{id}/rows - Добавить строку
